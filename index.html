@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+		<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,200;0,400;0,900;1,200;1,400&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.1.2/tailwind.min.css"
+      referrerpolicy="no-referrer"
+    />
+    <title>🎨|粒子藝術網站</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="og:title" content="粒子藝術網站">
+    <meta name="og:type" content="website">
+    <meta name='theme-color' content='#2087A7'>
+    <meta name="og:image:width" content="64">
+    <meta name="og:image:height" content="64">
+    <meta name="og:description" content="由Hello Team製作">
+  </head>
+  <body class="w-screen h-screen flex justify-center items-center flex-col">
+    <h2 class="font-extrabold text-gray-600 text-xl mb-3">
+      輸入圖片網址：
+    </h2>
+    <div class="flex-col sm:flex-row flex w-10/12 sm:w-9/12 md:w-6/12">
+      <input
+        placeholder="輸入圖片網址"
+        type="text"
+        class="flex-1 ring-2 ring-yellow-300 p-2 focus:ring-4 focus:ring-opacity-50 rounded shadow-xl focus:shadow-2xl transition-shadow focus:outline-none"
+				value=""
+      />
+      <button
+        class="p-2 mt-3 sm:mt-0 sm:ml-2 bg-yellow-500 hover:bg-yellow-600 transition-colors active: text-white rounded-md w-full sm:w-2/12"
+      >
+        前往
+      </button>
+    </div>
+    <i class="px-4 text-sm mt-3 text-center text-gray-400 italic"
+      >輸入圖片連結並按前往後，你將被帶到項目頁面</i
+    >
+  </body>
+</html>
+<script>
+  let btn = document.querySelector("button");
+  btn.onclick = () => {
+    location = `/main.html#${document.querySelector("input").value}`;
+  };
+</script>
+<style>
+  * {
+    font-family: "Montserrat", sans-serif;
+  }
+</style>
