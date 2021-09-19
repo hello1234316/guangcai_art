@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+		<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,200;0,400;0,900;1,200;1,400&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.1.2/tailwind.min.css"
+      referrerpolicy="no-referrer"
+    />
+    <title>art!P</title>
+  </head>
+
+  <body>
+    <canvas id="canvas"></canvas>
+    <canvas id="canvas2" style="display: none;"></canvas>
+    <div id="sidebar" class="hidden sm:block">
+      <h2>Info</h2>
+      該項目由 Hello Team 創建
+      <h2>Usage:</h2>
+      <ul>
+        <li>粒子藝術</li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+      </ul>
+			<h2></h2>
+		
+    </div>
+  </body>
+</html>
+<style>
+  * {
+    font-family: "Montserrat", sans-serif;
+    background: #000000;
+    padding: 0;
+    margin: 0;
+  }
+  #sidebar {
+    position: absolute;
+    background: #0bb1;
+    color: white;
+    right: 0;
+    top: 0;
+    width: 300px;
+    padding: 30px;
+    height: 100vh;
+		overflow: scroll;
+  }
+  #sidebar * {
+    background: transparent;
+  }
+  ul {
+    padding-left: 20px;
+		list-style: square inside;
+  }
+  h2 {
+    padding-top: 10px;
+    color: #9ff;
+    text-align: center;
+    margin-bottom: 3px;
+		font-weight: 500;
+		font-size: 20px;
+  }
+</style>
+<script>
+	document.addEventListener("visibilitychange", function() {
+			if (document.hidden){
+					document.title = "😔 你離開了"
+			} else {
+					document.title = "藝術"
+			}
+	});
+</script>
+<script type="module">
+  import * as _$ from "https://bijou.js.org/bijou.js";
+  (() => {
+    var particles = [];
+    var search = location.search.substring(1) || "?nothing=nothing";
+    var query = JSON.parse(
+      '{"' +
+        decodeURI(search)
+          .replace(/"/g, '\\"')
+          .replace(/&/g, '","')
+          .replace(/=/g, '":"') +
+        '"}'
+    );
+    if (query.random) {
+      // It's a bit unorthodox, that's the physics for the random version, I forked this from the old version that I made with random physics a while ago.
+      fetch(
+        "https://gist.githubusercontent.com/Explosion-Scratch/e8aa29f60610f7a85eb95423353c86c7/raw/index.js?cache=none"
+      )
+        .then((res) => res.text())
+        .then(eval);
+      return;
+    }
+    var data = { data: [] };
+    (async () => {
+      const canvas2 = document.querySelector("#canvas2");
+      const ctx2 = canvas2.getContext("2d");
+      const canvas = document.querySelector("#canvas");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      window.onmousemove = (e) => {
+        for (let k = 0; k < 20; k++) {
+          particles.push(
+            new Particle({
+              x: e.clientX + _$.random(-10, 10),
+              y: e.clientY + _$.random(-10, 10)
+            })
+          );
+        }
+      };
+      _$.requestInterval(() => {
+        particles.push(
+          new Particle({
+            x: _$.random(0, canvas.width),
+            y: Math.random() * 4
+          })
+        );
+      }, 10);
+      window.onkeypress = (e) => {
+        if (e.key === "a") {
+          setInterval(() => {
+            for (let k = 0; k < canvas.width / 2; k++) {
+              particles.push(
+                new Particle({
+                  x: k * 2,
+                  y: 2
+                })
+              );
+            }
+          }, 2000);
+          return;
+        }
+        for (let k = 0; k < canvas.width / 2; k++) {
+          particles.push(
+            new Particle({
+              x: k * 2,
+              y: 2
+            })
+          );
+        }
+      };
+      window.ontouchmove = (e) => {
+        for (let l = 0; l < e.touches.length; l++) {
+          particles.push(
+            new Particle({
+              x: e.touches[l].clientX + _$.random(-10, 10),
+              y: e.touches[l].clientY + _$.random(-10, 10)
+            })
+          );
+        }
+      };
+      const ctx = canvas.getContext("2d");
+      class Particle {
+        constructor({ x, y }) {
+          this.x = x;
+          this.y = y;
+          this.oldx = x;
+          this.oldy = y;
+          this.vel = Math.random() * 10;
+          this.color = color(this.x, this.y);
+        }
+        update() {
+          this.oldx = this.x;
+          this.oldy = this.y;
+          let a = avg(~~this.x, ~~this.y) / 255;
+
+          this.y += a * 4 + 2;
+          if (a > 0.5) {
+            this.dir += Math.random() * 50;
+          }
+          this.vel += Math.random() * 0.2;
+          this.color = color(~~this.x, ~~this.y);
+          if (
+            this.x > canvas.width ||
+            this.x < 0 ||
+            this.y > canvas.height ||
+            this.y < 0
+          ) {
+            this.del();
+          }
+        }
+        del() {
+          let n = [];
+          for (let p in particles) {
+            if (particles[p] !== this) {
+              n.push(particles[p]);
+            }
+          }
+          particles = n;
+        }
+        render() {
+          ctx.beginPath();
+          ctx.moveTo(this.oldx, this.oldy);
+          ctx.lineTo(this.x, this.y);
+          ctx.lineCap = "round";
+          // ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = this.color;
+          ctx.stroke();
+        }
+      }
+      await init();
+      update();
+      _$.requestInterval(update, 50);
+      function update() {
+        ctx.fillStyle = "#00000006";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((t) => {
+          t.render();
+          t.update();
+        });
+      }
+
+      function init() {
+        return new Promise(async (res) => {
+          for (let i = 0; i < 100; i++) {
+            particles.push(
+              new Particle({
+                x: _$.random(0, canvas.width),
+                y: _$.random(0, canvas.height)
+              })
+            );
+          }
+          const url = window.location.hash
+            ? window.location.hash.replace(/^#(?:http|https)\:\/\//, "")
+            : "cdn.shopify.com/s/files/1/1802/4445/products/2017_Scratch_-_Scratch_Logo_Tee-1001_-_WEB_RES_1024x1024.jpg?v=1539700158";
+          const imgData = await _$.imageToData(
+            "https://cors.explosionscratc.repl.co/" + url
+          );
+          let img = new Image();
+          img.src = imgData;
+          canvas2.width = window.innerWidth;
+          canvas2.height = window.innerHeight;
+          img.onload = () => {
+            var hRatio = canvas2.width / img.width;
+            var vRatio = canvas2.height / img.height;
+            var ratio = Math.min(hRatio, vRatio);
+            ctx2.drawImage(
+              img,
+              0,
+              0,
+              img.width,
+              img.height,
+              0,
+              0,
+              img.width * ratio,
+              img.height * ratio
+            );
+            data = ctx2.getImageData(0, 0, canvas2.width, canvas2.height);
+            res();
+          };
+        });
+      }
+
+      function color(x, y) {
+        // return "rgb(255,255,255)";
+        let d = data.data;
+        let p = canvas2.width * y * 4 + x * 4;
+        return `rgba(${d[p]}, ${d[p + 1]}, ${d[p + 2]}, ${d[p + 3]})`;
+      }
+      function avg(x, y) {
+        let d = data.data;
+        let p = canvas2.width * y * 4 + x * 4;
+        return (d[p] + d[p + 1] + d[p + 2]) / 3;
+      }
+    })();
+  })();
+</script>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+		<link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,200;0,400;0,900;1,200;1,400&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.1.2/tailwind.min.css"
+      referrerpolicy="no-referrer"
+    />
+    <title>art!P</title>
+  </head>
+
+  <body>
+    <canvas id="canvas"></canvas>
+    <canvas id="canvas2" style="display: none;"></canvas>
+    <div id="sidebar" class="hidden sm:block">
+      <h2>Info</h2>
+      該項目由 Hello Team 創建
+      <h2>Usage:</h2>
+      <ul>
+        <li>粒子藝術</li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+      </ul>
+			<h2></h2>
+		
+    </div>
+  </body>
+</html>
+<style>
+  * {
+    font-family: "Montserrat", sans-serif;
+    background: #000000;
+    padding: 0;
+    margin: 0;
+  }
+  #sidebar {
+    position: absolute;
+    background: #0bb1;
+    color: white;
+    right: 0;
+    top: 0;
+    width: 300px;
+    padding: 30px;
+    height: 100vh;
+		overflow: scroll;
+  }
+  #sidebar * {
+    background: transparent;
+  }
+  ul {
+    padding-left: 20px;
+		list-style: square inside;
+  }
+  h2 {
+    padding-top: 10px;
+    color: #9ff;
+    text-align: center;
+    margin-bottom: 3px;
+		font-weight: 500;
+		font-size: 20px;
+  }
+</style>
+<script>
+	document.addEventListener("visibilitychange", function() {
+			if (document.hidden){
+					document.title = "😔 你離開了"
+			} else {
+					document.title = "藝術"
+			}
+	});
+</script>
+<script type="module">
+  import * as _$ from "https://bijou.js.org/bijou.js";
+  (() => {
+    var particles = [];
+    var search = location.search.substring(1) || "?nothing=nothing";
+    var query = JSON.parse(
+      '{"' +
+        decodeURI(search)
+          .replace(/"/g, '\\"')
+          .replace(/&/g, '","')
+          .replace(/=/g, '":"') +
+        '"}'
+    );
+    if (query.random) {
+      // It's a bit unorthodox, that's the physics for the random version, I forked this from the old version that I made with random physics a while ago.
+      fetch(
+        "https://gist.githubusercontent.com/Explosion-Scratch/e8aa29f60610f7a85eb95423353c86c7/raw/index.js?cache=none"
+      )
+        .then((res) => res.text())
+        .then(eval);
+      return;
+    }
+    var data = { data: [] };
+    (async () => {
+      const canvas2 = document.querySelector("#canvas2");
+      const ctx2 = canvas2.getContext("2d");
+      const canvas = document.querySelector("#canvas");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      window.onmousemove = (e) => {
+        for (let k = 0; k < 20; k++) {
+          particles.push(
+            new Particle({
+              x: e.clientX + _$.random(-10, 10),
+              y: e.clientY + _$.random(-10, 10)
+            })
+          );
+        }
+      };
+      _$.requestInterval(() => {
+        particles.push(
+          new Particle({
+            x: _$.random(0, canvas.width),
+            y: Math.random() * 4
+          })
+        );
+      }, 10);
+      window.onkeypress = (e) => {
+        if (e.key === "a") {
+          setInterval(() => {
+            for (let k = 0; k < canvas.width / 2; k++) {
+              particles.push(
+                new Particle({
+                  x: k * 2,
+                  y: 2
+                })
+              );
+            }
+          }, 2000);
+          return;
+        }
+        for (let k = 0; k < canvas.width / 2; k++) {
+          particles.push(
+            new Particle({
+              x: k * 2,
+              y: 2
+            })
+          );
+        }
+      };
+      window.ontouchmove = (e) => {
+        for (let l = 0; l < e.touches.length; l++) {
+          particles.push(
+            new Particle({
+              x: e.touches[l].clientX + _$.random(-10, 10),
+              y: e.touches[l].clientY + _$.random(-10, 10)
+            })
+          );
+        }
+      };
+      const ctx = canvas.getContext("2d");
+      class Particle {
+        constructor({ x, y }) {
+          this.x = x;
+          this.y = y;
+          this.oldx = x;
+          this.oldy = y;
+          this.vel = Math.random() * 10;
+          this.color = color(this.x, this.y);
+        }
+        update() {
+          this.oldx = this.x;
+          this.oldy = this.y;
+          let a = avg(~~this.x, ~~this.y) / 255;
+
+          this.y += a * 4 + 2;
+          if (a > 0.5) {
+            this.dir += Math.random() * 50;
+          }
+          this.vel += Math.random() * 0.2;
+          this.color = color(~~this.x, ~~this.y);
+          if (
+            this.x > canvas.width ||
+            this.x < 0 ||
+            this.y > canvas.height ||
+            this.y < 0
+          ) {
+            this.del();
+          }
+        }
+        del() {
+          let n = [];
+          for (let p in particles) {
+            if (particles[p] !== this) {
+              n.push(particles[p]);
+            }
+          }
+          particles = n;
+        }
+        render() {
+          ctx.beginPath();
+          ctx.moveTo(this.oldx, this.oldy);
+          ctx.lineTo(this.x, this.y);
+          ctx.lineCap = "round";
+          // ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = this.color;
+          ctx.stroke();
+        }
+      }
+      await init();
+      update();
+      _$.requestInterval(update, 50);
+      function update() {
+        ctx.fillStyle = "#00000006";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((t) => {
+          t.render();
+          t.update();
+        });
+      }
+
+      function init() {
+        return new Promise(async (res) => {
+          for (let i = 0; i < 100; i++) {
+            particles.push(
+              new Particle({
+                x: _$.random(0, canvas.width),
+                y: _$.random(0, canvas.height)
+              })
+            );
+          }
+          const url = window.location.hash
+            ? window.location.hash.replace(/^#(?:http|https)\:\/\//, "")
+            : "cdn.shopify.com/s/files/1/1802/4445/products/2017_Scratch_-_Scratch_Logo_Tee-1001_-_WEB_RES_1024x1024.jpg?v=1539700158";
+          const imgData = await _$.imageToData(
+            "https://cors.explosionscratc.repl.co/" + url
+          );
+          let img = new Image();
+          img.src = imgData;
+          canvas2.width = window.innerWidth;
+          canvas2.height = window.innerHeight;
+          img.onload = () => {
+            var hRatio = canvas2.width / img.width;
+            var vRatio = canvas2.height / img.height;
+            var ratio = Math.min(hRatio, vRatio);
+            ctx2.drawImage(
+              img,
+              0,
+              0,
+              img.width,
+              img.height,
+              0,
+              0,
+              img.width * ratio,
+              img.height * ratio
+            );
+            data = ctx2.getImageData(0, 0, canvas2.width, canvas2.height);
+            res();
+          };
+        });
+      }
+
+      function color(x, y) {
+        // return "rgb(255,255,255)";
+        let d = data.data;
+        let p = canvas2.width * y * 4 + x * 4;
+        return `rgba(${d[p]}, ${d[p + 1]}, ${d[p + 2]}, ${d[p + 3]})`;
+      }
+      function avg(x, y) {
+        let d = data.data;
+        let p = canvas2.width * y * 4 + x * 4;
+        return (d[p] + d[p + 1] + d[p + 2]) / 3;
+      }
+    })();
+  })();
+</script>
